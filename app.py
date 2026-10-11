@@ -1,11 +1,12 @@
 """FastAPI entrypoint. Wires /support, /payments, /parsing through gates A to E."""
 
 import os
+from pathlib import Path
 import threading
 from typing import Optional
 
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 
 import enforcement
@@ -14,6 +15,15 @@ import mocks
 import planner
 
 app = FastAPI(title="AI Firewall for Banking")
+
+INDEX_HTML = Path(__file__).parent / "index.html"
+
+
+@app.get("/", response_class=HTMLResponse)
+def index():
+    if INDEX_HTML.exists():
+        return HTMLResponse(content=INDEX_HTML.read_text(encoding="utf-8"))
+    return HTMLResponse(content="<h1>Bankism AI Firewall</h1><p><a href='/docs'>Swagger API Docs</a></p>")
 
 
 @app.get("/health")
