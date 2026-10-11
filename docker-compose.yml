@@ -1,0 +1,38 @@
+services:
+  redis:
+    image: redis:7
+
+  support:
+    build: .
+    environment:
+      - FIREWALL_SERVICES=support
+      - FIREWALL_SECRET=${FIREWALL_SECRET}
+      - REDIS_URL=redis://redis:6379/0
+    deploy:
+      replicas: 3
+
+  parsing:
+    build: .
+    environment:
+      - FIREWALL_SERVICES=parsing
+      - FIREWALL_SECRET=${FIREWALL_SECRET}
+      - REDIS_URL=redis://redis:6379/0
+    deploy:
+      replicas: 2
+
+  payments:
+    build: .
+    environment:
+      - FIREWALL_SERVICES=payments
+      - FIREWALL_SECRET=${FIREWALL_SECRET}
+      - REDIS_URL=redis://redis:6379/0
+    # replicas 1 ONLY: mocked ledger is per-process; more replicas can double-debit
+    deploy:
+      replicas: 1
+
+  nginx:
+    image: nginx:1.27
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
